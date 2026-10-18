@@ -1,35 +1,37 @@
-name: Android CI
+name: Android AAB
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    branches: [ "aab" ]
+  workflow_dispatch:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-    - name: set up JDK 11
-      uses: actions/setup-java@v4
+    - uses: actions/setup-java@v4
       with:
-        java-version: '11'
+        java-version: '17'
         distribution: 'temurin'
         cache: gradle
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
+    - run: chmod +x gradlew
+    - name: Build AAB
+      run: ./gradlew bundleRelease
 
-    - name: Build debug APK
-      run: ./gradlew assembleDebug
+    - name: Validate and make test APK
+      run: |
+        AAB=app/build/outputs/bundle/release/app-release.aab
+        curl -sL -o bt.jar https://github.com/google/bundletool/releases/download/1.17.1/bundletool-all-1.17.1.jar
+        java -jar bt.jar validate --bundle=$AAB
+        keytool -genkeypair -keystore dbg.jks -storepass android -keypass android -alias k -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=test"
+        java -jar bt.jar build-apks --bundle=$AAB --output=t.apks --mode=universal --ks=dbg.jks --ks-pass=pass:android --ks-key-alias=k --key-pass=pass:android
+        unzip -o t.apks universal.apk
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
       with:
-        name: lightapp.apk
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: template-aab
+        path: |
+          app/build/outputs/bundle/release/app-release.aab
+          universal.apk
