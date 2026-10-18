@@ -3,7 +3,6 @@
     package="cn.suroy.lightapp"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.INTERNET"/>
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -39,5 +38,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <receiver
+            android:name="cn.suroy.lightapp.AlarmReceiver"
+            android:exported="false" />
     </application>
 </manifest>
+    
