@@ -152,13 +152,48 @@ public class MainActivity extends Activity {
       //  mWebView.loadUrl("https://suroy.cn");
 mWebView.loadUrl("file:///android_asset/index.html");
         // 加载本地资源，这里是 Android 资产目录下的 index.html 文件
+        mWebView.getSettings().setDomStorageEnabled(true);
+mWebView.addJavascriptInterface(new SaveBridge(), "AndroidSave");
         // mWebView.loadUrl("file:///android_asset/index.html");
     }
 
     public WebView getWebView() {
         return mWebView;
     }
-
+    public class SaveBridge {
+    @android.webkit.JavascriptInterface
+    public void save(String name, String mime, String b64) {
+        String msg;
+        try {
+            byte[] data = android.util.Base64.decode(b64, android.util.Base64.DEFAULT);
+            java.io.OutputStream os;
+            if (android.os.Build.VERSION.SDK_INT >= 29) {
+                android.content.ContentValues v = new android.content.ContentValues();
+                v.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, name);
+                v.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, mime);
+                v.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Download");
+                android.net.Uri u = getContentResolver().insert(
+                    android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                os = getContentResolver().openOutputStream(u);
+            } else {
+                java.io.File d = getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS);
+                os = new java.io.FileOutputStream(new java.io.File(d, name));
+            }
+            os.write(data);
+            os.close();
+            msg = "Сохранено в Загрузки: " + name;
+        } catch (Exception e) {
+            msg = "Ошибка: " + e;
+        }
+        final String m = msg;
+        runOnUiThread(new Runnable() {
+            public void run() {
+                android.widget.Toast.makeText(MainActivity.this, m, android.widget.Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+    }
+    
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == FILE_CHOOSER_RESULT_CODE) {
