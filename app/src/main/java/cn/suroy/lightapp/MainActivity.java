@@ -80,7 +80,15 @@ public class MainActivity extends Activity {
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
+        decorView.setBackgroundColor(android.graphics.Color.BLACK);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             WindowManager.LayoutParams lp = getWindow().getAttributes();
             lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
@@ -228,6 +236,29 @@ public class MainActivity extends Activity {
 
     private class MyWebViewClient extends WebViewClient {
         @Override
+        public void onPageFinished(WebView view, String url) {
+            view.evaluateJavascript(
+                "(function(){var c=getComputedStyle(document.body).backgroundColor;"
+                + "if(c==='rgba(0, 0, 0, 0)')c=getComputedStyle(document.documentElement).backgroundColor;"
+                + "return c;})()",
+                new ValueCallback<String>() {
+                    public void onReceiveValue(String v) {
+                        try {
+                            java.util.regex.Matcher m = java.util.regex.Pattern
+                                .compile("(\\d+)[, ]+(\\d+)[, ]+(\\d+)(?:[, /]+([\\d.]+))?").matcher(v);
+                            if (m.find()) {
+                                if (m.group(4) != null && Float.parseFloat(m.group(4)) == 0f) return;
+                                getWindow().getDecorView().setBackgroundColor(android.graphics.Color.rgb(
+                                    Integer.parseInt(m.group(1)),
+                                    Integer.parseInt(m.group(2)),
+                                    Integer.parseInt(m.group(3))));
+                            }
+                        } catch (Exception e) {}
+                    }
+                });
+        }
+
+        @Override
         public boolean shouldOverrideUrlLoading(WebView view, final String url) {
             if (url.endsWith(".pdf") || url.endsWith(".zip") || url.endsWith(".doc")
                     || url.endsWith(".docx") || url.endsWith(".7z")) {
@@ -264,4 +295,5 @@ public class MainActivity extends Activity {
             return false;
         }
     }
-}
+    }
+            
