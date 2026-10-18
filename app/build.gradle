@@ -1,15 +1,17 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 31
-        lintOptions {
+    namespace 'cn.suroy.lightapp'
+    compileSdk 35
+
+    lint {
         abortOnError false
-        }
+    }
 
     defaultConfig {
         applicationId 'com.pkgplaceholder.xxxxxxxxxxxxxxxxxxxxx'
         minSdk 24
-        targetSdkVersion 29
+        targetSdk 35
         versionCode 1
         versionName "1.0"
     }
