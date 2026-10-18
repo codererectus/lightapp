@@ -1,0 +1,35 @@
+name: Validate AAB
+
+on:
+  push:
+    branches: [ "aab" ]
+    paths: [ "test/**" ]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Check AAB
+      run: |
+        ls -l test
+        AAB=$(ls test/*.aab | head -1)
+        jarsigner -verify -verbose:summary "$AAB" | tail -5
+        curl -sL -o bt.jar https://github.com/google/bundletool/releases/download/1.17.1/bundletool-all-1.17.1.jar
+        java -jar bt.jar validate --bundle="$AAB"
+        java -jar bt.jar dump manifest --bundle="$AAB" | head -20
+        keytool -genkeypair -keystore dbg.jks -storepass android -keypass android -alias k -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=test"
+        java -jar bt.jar build-apks --bundle="$AAB" --output=t.apks --mode=universal --ks=dbg.jks --ks-pass=pass:android --ks-key-alias=k --key-pass=pass:android
+        unzip -o t.apks universal.apk
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: test-universal
+        path: universal.apk
+        
