@@ -153,6 +153,27 @@ public class MainActivity extends Activity {
 mWebView.loadUrl("file:///android_asset/index.html");
         // 加载本地资源，这里是 Android 资产目录下的 index.html 文件
         mWebView.getSettings().setDomStorageEnabled(true);
+        try {
+    java.io.InputStream is = getAssets().open("config.json");
+    byte[] b = new byte[is.available()];
+    is.read(b);
+    is.close();
+    org.json.JSONObject c = new org.json.JSONObject(new String(b, "UTF-8"));
+    String o = c.optString("orientation", "auto");
+    if (o.equals("landscape")) {
+        setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+    } else if (o.equals("portrait")) {
+        setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+    }
+    if (c.optBoolean("fullscreen", false)) {
+        getWindow().getDecorView().setSystemUiVisibility(
+            android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
+            | android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            | android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            | android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+    }
+} catch (Exception e) {
+    }
 mWebView.addJavascriptInterface(new SaveBridge(), "AndroidSave");
         // mWebView.loadUrl("file:///android_asset/index.html");
     }
