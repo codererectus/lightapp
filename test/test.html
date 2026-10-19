@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test</title>
+<style>
+html,body{margin:0;height:100%;background:#111;color:#fff;font-family:sans-serif}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+button{font-size:20px;padding:12px 24px}
+</style>
+</head>
+<body>
+<h1>AAB test</h1>
+<p id="c">Taps: 0</p>
+<button onclick="document.getElementById('c').textContent='Taps: '+(++n)">TAP</button>
+<script>let n=0;</script>
+</body>
+</html>
